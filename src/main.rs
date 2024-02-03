@@ -1,9 +1,11 @@
-use actix_web::{middleware, web, App, HttpRequest, HttpServer};
+use actix_web::{web, App, HttpRequest, HttpServer};
 
-async fn index(request: HttpRequest) -> &'static str {
-    println!("REQ: {request:?}");
-    "Hello, World"
-}
+mod controllers;
+mod config;
+mod services;
+mod models;
+mod constants;
+mod schema;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -12,21 +14,21 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-        .service(web::resource("path").to(|| async { "Hello World!" }))
-        .service(web::resource("path").to(index))
+        .service(web::resource("/").to(hello::hello))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
 }
 
+#[cfg(test)]
 mod tests {
     use actix_web::{body::to_bytes, dev::Service, http, test, web, App, Error};
     use super::*;
 
     #[actix_web::test]
     async fn test_index() -> Result<(), Error> {
-        let app = App::new().route("/", web::get().to(index));
+        let app = App::new().route("/", web::get().to(hello));
         let app = test::init_service(app).await;
 
         let request = test::TestRequest::get().uri("/").to_request();
